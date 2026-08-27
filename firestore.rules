@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isGameOwner(gameId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/games/$(gameId)).data.ownerId == request.auth.uid;
+    }
+
+    // --- 1. Users ---
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId)
+        && request.resource.data.bio.size() <= 250
+        && request.resource.data.publishedGamesCount >= 0
+        && request.resource.data.publishedGamesCount <= 25;
+      allow delete: if false;
+
+      // Library subcollection
+      match /library/{gameId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // --- 2. Games ---
+    match /games/{gameId} {
+      allow read: if true;
+
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.publishedGamesCount < 25
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.playUrl.matches('https://.*')
+        && request.resource.data.screenshots.size() <= 5
+        && request.resource.data.developerNote.size() <= 500
+        && request.resource.data.views == 0
+        && request.resource.data.rating == 0
+        && request.resource.data.ratingCount == 0;
+
+      // Owner can update everything; others can only update rating/ratingCount
+      allow update: if isGameOwner(gameId)
+        || (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'ratingCount']));
+
+      allow delete: if isGameOwner(gameId);
+
+      // --- Ratings subcollection ---
+      match /ratings/{ratingId} {
+        allow read: if true;
+        // User can write their own rating; game owner can manage all ratings
+        allow write: if isOwner(ratingId) || isGameOwner(gameId);
+      }
+    }
+
+    // --- 3. Reports ---
+    match /reports/{reportId} {
+      allow read, update, delete: if false;
+      allow create: if isAuthenticated()
+        && request.resource.data.reportedBy == request.auth.uid
+        && request.resource.data.reason in ['inappropriate', 'fake_ai_claim', 'broken_link']
+        && request.resource.data.details.size() <= 500;
+    }
+  }
+}
