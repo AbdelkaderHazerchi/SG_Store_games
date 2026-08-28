@@ -4,9 +4,8 @@ import { APP_NAME, ROUTES } from '../../utils/constants';
 
 const footerLinks = [
   { label: 'Home', to: ROUTES.HOME },
-  { label: 'Browse Games', to: ROUTES.HOME },
-  { label: 'Publish a Game', to: ROUTES.PUBLISH },
-  { label: 'Sign In', to: ROUTES.LOGIN },
+  { label: 'Browse Games', to: '/search' },
+  { label: 'Site Policy', to: '/policy' },
 ];
 
 export default function Footer() {

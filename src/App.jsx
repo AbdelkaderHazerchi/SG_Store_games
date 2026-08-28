@@ -14,6 +14,7 @@ import Library from './pages/Library';
 import Search from './pages/Search';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import SitePolicy from './pages/SitePolicy';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -61,6 +62,8 @@ export default function App() {
                     </RequireAuth>
                   }
                 />
+                <Route path="/policy" element={<SitePolicy />} />
+                <Route path="/legal" element={<SitePolicy />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="*" element={<NotFound />} />
