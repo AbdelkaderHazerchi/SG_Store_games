@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gamepad2, Shuffle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gamepad2, Shuffle } from 'lucide-react';
 import GameCard from '../components/common/GameCard';
-import EmptyState from '../components/common/EmptyState';
 import Spinner from '../components/common/Spinner';
 import Button from '../components/common/Button';
 import FeaturedGameCard from '../components/common/FeaturedGameCard';
 import { useGames } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../utils/constants';
-import { formatNumber } from '../utils/helpers';
 
 export default function Home() {
   const { listGames, listRandomGames } = useGames();
@@ -46,7 +44,41 @@ export default function Home() {
   }, []);
 
   const featured = games?.slice(0, 4) ?? [];
-  const popular = games?.slice(4) ?? [];
+  const trackRef = useRef(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  function updateArrows() {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 8);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }
+
+  useEffect(() => {
+    updateArrows();
+    const el = trackRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      el.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, [featured.length]);
+
+  function scrollByCard(dir) {
+    const el = trackRef.current;
+    if (!el || !el.firstElementChild) return;
+    const cardW = el.firstElementChild.getBoundingClientRect().width;
+    const gap = 24;
+    const max = el.scrollWidth - el.clientWidth;
+    let next = el.scrollLeft + dir * (cardW + gap);
+    // wrap around
+    if (next < 0) next = max;
+    else if (next > max + 8) next = 0;
+    el.scrollTo({ left: next, behavior: 'smooth' });
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -102,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured - Top 4 Popular Games (larger cards) */}
+      {/* Featured - Top 4 Popular Games — larger carousel with arrows */}
       {featured.length > 0 && (
         <section className="mb-12" aria-labelledby="featured-heading">
           <h2 id="featured-heading" className="mb-6 flex items-center justify-between">
@@ -114,10 +146,54 @@ export default function Home() {
               View all →
             </Link>
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((game, index) => (
-              <FeaturedGameCard key={game.id} game={game} rank={index + 1} />
-            ))}
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Previous"
+              onClick={() => scrollByCard(-1)}
+              className="absolute left-0 top-1/2 z-10 hidden -translate-x-3 -translate-y-1/2 rounded-full border border-slate-700 bg-surface-raised p-2.5 text-white shadow-xl transition hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none sm:flex lg:-translate-x-5"
+              disabled={!canLeft && featured.length <= 2}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next"
+              onClick={() => scrollByCard(1)}
+              className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 translate-x-3 rounded-full border border-slate-700 bg-surface-raised p-2.5 text-white shadow-xl transition hover:bg-slate-700 disabled:opacity-30 disabled:pointer-events-none sm:flex lg:translate-x-5"
+              disabled={!canRight && featured.length <= 2}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+
+            {/* arrows for mobile — overlay inside */}
+            <button
+              type="button"
+              aria-label="Previous"
+              onClick={() => scrollByCard(-1)}
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white backdrop-blur transition hover:bg-black/80 sm:hidden"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next"
+              onClick={() => scrollByCard(1)}
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white backdrop-blur transition hover:bg-black/80 sm:hidden"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+
+            <div
+              ref={trackRef}
+              className="flex gap-6 overflow-x-auto scroll-smooth pb-2 pt-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {featured.map((game, index) => (
+                <div key={game.id} className="snap-start shrink-0 w-[85%] sm:w-[calc(50%-12px)]">
+                  <FeaturedGameCard game={game} rank={index + 1} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

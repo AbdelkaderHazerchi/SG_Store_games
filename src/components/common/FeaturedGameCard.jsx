@@ -8,7 +8,7 @@ export default function FeaturedGameCard({ game, rank }) {
       to={`/game/${game.id}`}
       className="group block overflow-hidden rounded-2xl bg-surface-raised shadow-lg shadow-black/20 ring-1 ring-slate-800 transition-all hover:-translate-y-1 hover:ring-primary/60"
     >
-      <div className="relative aspect-[16/10] overflow-hidden">
+      <div className="relative aspect-[16/11] overflow-hidden sm:aspect-[16/10] lg:aspect-[16/10]">
         <img
           src={game.coverImage || 'https://placehold.co/400x250/1e293b/7c3aed?text=Game'}
           alt={game.title}
@@ -32,7 +32,7 @@ export default function FeaturedGameCard({ game, rank }) {
             )}
           </div>
           <div className="flex flex-col gap-1">
-            <h3 className="text-lg font-bold text-white group-hover:text-primary-light">
+            <h3 className="text-xl font-bold leading-tight text-white group-hover:text-primary-light">
               {game.title}
             </h3>
             <div className="flex items-center gap-3 text-sm text-slate-200">
@@ -49,8 +49,8 @@ export default function FeaturedGameCard({ game, rank }) {
           </div>
         </div>
       </div>
-      <div className="p-4 pt-2">
-        <p className="line-clamp-2 text-sm text-slate-400">{truncate(game.description, 130)}</p>
+      <div className="p-5 pt-3">
+        <p className="line-clamp-2 min-h-[2.75rem] text-[15px] leading-relaxed text-slate-400">{truncate(game.description, 140)}</p>
         <div className="mt-3 flex items-center justify-between">
           {game.genre && (
             <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300">
