@@ -4,6 +4,8 @@ import {
   Bot,
   Bookmark,
   BookmarkCheck,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Eye,
   Flag,
@@ -147,23 +149,54 @@ export default function GameDetails() {
   const gallery = [game.coverImage, ...(game.screenshots || [])].filter(Boolean);
   const isOwner = currentUser && game.ownerId === currentUser.uid;
 
+  function goPrev() {
+    setActiveImage((i) => (i - 1 + gallery.length) % gallery.length);
+  }
+  function goNext() {
+    setActiveImage((i) => (i + 1) % gallery.length);
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Gallery */}
-      <div className="overflow-hidden rounded-2xl ring-1 ring-slate-800">
+      <div className="group relative overflow-hidden rounded-2xl ring-1 ring-slate-800">
         <img
+          key={gallery[activeImage]}
           src={gallery[activeImage] || 'https://placehold.co/1200x675/1e293b/7c3aed?text=Game'}
           alt={`${game.title} screenshot`}
-          className="aspect-video w-full bg-slate-900 object-cover"
+          className="aspect-video w-full animate-[fadeIn_300ms_ease] bg-slate-900 object-cover"
         />
+        {gallery.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous image"
+              onClick={goPrev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:p-3"
+            >
+              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next image"
+              onClick={goNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/55 p-2.5 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:p-3"
+            >
+              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+            <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
+              {activeImage + 1} / {gallery.length}
+            </span>
+          </>
+        )}
       </div>
       {gallery.length > 1 && (
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
           {gallery.map((url, index) => (
             <button
               key={url + index}
               onClick={() => setActiveImage(index)}
-              className={`h-16 w-28 shrink-0 overflow-hidden rounded-lg ring-2 transition-all ${
+              className={`h-32 w-56 shrink-0 overflow-hidden rounded-xl ring-2 transition-all ${
                 index === activeImage
                   ? 'ring-primary'
                   : 'opacity-60 ring-transparent hover:opacity-100'

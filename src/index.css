@@ -5,3 +5,8 @@
 body {
   @apply bg-slate-950 font-sans text-slate-200 antialiased;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
