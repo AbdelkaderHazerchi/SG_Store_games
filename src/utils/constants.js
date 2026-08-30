@@ -6,6 +6,7 @@ export const ROUTES = {
   GAME_EDIT: '/game/:id/edit',
   PUBLISH: '/publish',
   PROFILE: '/profile',
+  NOTIFICATIONS: '/notifications',
   LOGIN: '/login',
   REGISTER: '/register',
 };
@@ -14,6 +15,7 @@ export const COLLECTIONS = {
   GAMES: 'games',
   USERS: 'users',
   REPORTS: 'reports',
+  NOTIFICATIONS: 'notifications',
 };
 
 // Constraints (enforced in UI, Firestore rules, and Cloudinary preset)
